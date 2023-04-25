@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useRef } from 'react';
+import React, { CSSProperties, useEffect, useState, useRef } from 'react';
 import * as echarts from 'echarts';
 
 import { linearMap, debounce } from '../utils/utils';
@@ -65,7 +65,7 @@ const generateEchartsData = (
 const Graph: React.FC<GraphProps> = ({ data, style = {}, focusedNodeID }) => {
   const divEL = useRef(null);
   const graphData = generateEchartsData(data, focusedNodeID);
-  const option = {
+  const [option, setOption] = useState({
     tooltip: {},
     animation: true,
     animationDuration: 2000,
@@ -101,7 +101,7 @@ const Graph: React.FC<GraphProps> = ({ data, style = {}, focusedNodeID }) => {
         },
       },
     ],
-  };
+  });
 
   useEffect(() => {
     let chartDOM = divEL.current;
@@ -127,11 +127,52 @@ const Graph: React.FC<GraphProps> = ({ data, style = {}, focusedNodeID }) => {
       }, 500);
       window.addEventListener('resize', debouncedResize);
     }
-  }, []);
+  }, [option]);
+
+  const handleReset = () => {
+    setOption({
+      tooltip: {},
+      animation: true,
+      animationDuration: 2000,
+      series: [
+        {
+          type: 'graph',
+          layout: 'force',
+          nodes: graphData.nodes,
+          edges: graphData.edges,
+          // Enable mouse zooming and translating
+          roam: true,
+          label: {
+            position: 'right',
+          },
+          force: {
+            initLayout: 'circular',
+            gravity: 0.1,
+            repulsion: 80,
+            edgeLength: [50, 100],
+            // Disable the iteration animation of layout
+            layoutAnimation: false,
+          },
+          lineStyle: {
+            curveness: 0.3,
+            opacity: 0.2,
+          },
+          emphasis: {
+            focus: 'adjacency',
+            label: {
+              position: 'right',
+              show: true,
+            },
+          },
+        },
+      ],
+    });
+  };
 
   return (
     <div className="hypertrons-crx-border">
       <div ref={divEL} style={style}></div>
+      <button onClick={handleReset}>Change View</button>
     </div>
   );
 };
